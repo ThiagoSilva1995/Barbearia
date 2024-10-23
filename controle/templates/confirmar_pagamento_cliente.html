@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center">Confirmar Pagamento</h2>
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <p><strong>Cliente:</strong> {{ agendamento.cliente.nome }}</p>
+                            <p><strong>Barbeiro:</strong> {{ agendamento.barbeiro.nome }}</p>
+                            <p><strong>Tipo de Corte:</strong> {{ agendamento.tipo_corte.nome }} - R$ {{ agendamento.tipo_corte.preco }}</p>
+                        </div>
+
+                        <h4 class="mt-4">Produtos Consumidos</h4>
+                        <div class="mb-3">
+                            <select id="produtoSelect" class="form-select">
+                                <option value="" selected disabled>Selecione um produto</option>
+                                {% for produto in produtos %}
+                                <option value="{{ produto.id }}" data-preco="{{ produto.preco }}">
+                                    {{ produto.nome }} - R$ {{ produto.preco }} (Estoque: {{ produto.estoque }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="quantidade" class="form-label">Quantidade</label>
+                            <input type="number" id="quantidade" class="form-control" value="1" min="1">
+                        </div>
+
+                        <button type="button" class="btn btn-primary mb-3" onclick="adicionarProduto()">Adicionar Produto</button>
+
+                        <h5>Produtos Adicionados</h5>
+                        <ul class="list-group mb-3" id="listaProdutos">
+                            <!-- Produtos adicionados serão exibidos aqui -->
+                        </ul>
+
+                        <h4>Valor Total: R$ <span id="valorTotal">{{ agendamento.tipo_corte.preco }}</span></h4>
+
+                        <button type="submit" class="btn btn-success mt-3">Confirmar Pagamento</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let valorTotal = parseFloat('{{ agendamento.tipo_corte.preco }}');
+    const listaProdutos = document.getElementById('listaProdutos');
+    const valorTotalSpan = document.getElementById('valorTotal');
+
+    function adicionarProduto() {
+        const produtoSelect = document.getElementById('produtoSelect');
+        const quantidadeInput = document.getElementById('quantidade');
+        
+        // Verifica se um produto foi selecionado
+        if (produtoSelect.value === "") {
+            alert("Por favor, selecione um produto.");
+            return;
+        }
+
+        const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text.split('-')[0].trim();
+        const produtoPreco = parseFloat(produtoSelect.options[produtoSelect.selectedIndex].dataset.preco);
+        const quantidade = parseInt(quantidadeInput.value);
+
+        // Calcular o valor total
+        const totalProduto = produtoPreco * quantidade;
+        valorTotal += totalProduto;
+        valorTotalSpan.textContent = valorTotal.toFixed(2);
+
+        // Adicionar o produto à lista
+        const itemLista = document.createElement('li');
+        itemLista.className = "list-group-item d-flex justify-content-between align-items-center";
+        itemLista.textContent = `${produtoNome} - Quantidade: ${quantidade} - R$ ${totalProduto.toFixed(2)}`;
+        
+        // Campo oculto para enviar os produtos e quantidades no form
+        const inputProduto = document.createElement('input');
+        inputProduto.type = 'hidden';
+        inputProduto.name = 'produtos';
+        inputProduto.value = produtoSelect.value;
+
+        const inputQuantidade = document.createElement('input');
+        inputQuantidade.type = 'hidden';
+        inputQuantidade.name = 'quantidades';
+        inputQuantidade.value = quantidade;
+
+        // Botão de remover
+        const botaoRemover = document.createElement('button');
+        botaoRemover.className = "btn btn-danger btn-sm";
+        botaoRemover.textContent = "Remover";
+        botaoRemover.onclick = function() {
+            // Atualizar o valor total ao remover o produto
+            valorTotal -= totalProduto;
+            valorTotalSpan.textContent = valorTotal.toFixed(2);
+            listaProdutos.removeChild(itemLista);
+        };
+
+        itemLista.appendChild(botaoRemover);
+        itemLista.appendChild(inputProduto);
+        itemLista.appendChild(inputQuantidade);
+        listaProdutos.appendChild(itemLista);
+
+        // Limpar seleção de produto e quantidade
+        produtoSelect.selectedIndex = 0;
+        quantidadeInput.value = 1;
+    }
+</script>
+{% endblock %}

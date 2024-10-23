@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Adicionar Produto{% endblock %}
+
+{% block content %}
+<div class="container mt-3 d-flex justify-content-center">
+    <div class="card shadow-lg" style="width: 100%; max-width: 400px;">
+        <div class="card-body">
+            <h3 class="text-center">Editar Produto</h3>            
+
+            {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" class="mt-4" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_nome" class="form-label">Nome do Produto</label>
+                    {{ form.nome }} <!-- Renderizando o campo do formulário diretamente -->
+                </div>
+                <div class="mb-3">
+                    <label for="id_preco" class="form-label">Preço</label>
+                    {{ form.preco }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_estoque" class="form-label">Quantidade em Estoque</label>
+                    {{ form.estoque }}
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Salvar</button>
+                <a href="{% url 'admin_custom' %}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

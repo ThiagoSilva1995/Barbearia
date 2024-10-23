@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Custom{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center mb-4">Gerenciamento</h3>
+
+    <div class="row mt-5">
+        <!-- Produtos -->
+        <div class="col-md-6">
+            <h5 class="mb-3">Produtos</h5>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Estoque</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produto in produtos %}
+                    <tr>
+                        <td>{{ produto.nome }}</td>
+                        <td>R$ {{ produto.preco }}</td>
+                        <td>{{ produto.estoque }}</td>
+                        <td>
+                            <a href="{% url 'editar_produto' produto.id %}" class="btn btn-warning">Editar</a>
+                            <form method="POST" action="{% url 'remover_produto' produto.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Remover</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{% url 'adicionar_produto' %}" class="btn btn-primary">Adicionar Produto</a>
+        </div>
+
+        <!-- Serviços -->
+        <div class="col-md-6">
+            <h5 class="mb-3">Tipos de Cortes</h5> <!-- Removido mt-5 para garantir que fique alinhado -->
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome do Serviço</th>
+                        <th>Preço</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for servico in tipos_corte %}
+                    <tr>
+                        <td>{{ servico.nome }}</td>
+                        <td>R$ {{ servico.preco }}</td>
+                        <td>
+                            <a href="{% url 'editar_servico' servico.id %}" class="btn btn-warning">Editar</a>
+                            <form method="POST" action="{% url 'remover_servico' servico.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Remover</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{% url 'adicionar_servico' %}" class="btn btn-primary">Adicionar Serviço</a>
+        </div>
+    </div>
+
+    <!-- Barbeiros -->
+     <div class="col-md-6">
+        <h4 class="mb-4 mt-5 cl">Barbeiros</h4>
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>telefone</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for barbeiro in barbeiros %}
+                <tr>
+                    <td>{{ barbeiro.nome }}</td>
+                    <td>{{ barbeiro.telefone }}</td>
+                    <td>
+                        <a href="{% url 'editar_barbeiro' barbeiro.id %}" class="btn btn-warning">Editar</a>
+                        <form method="POST" action="{% url 'remover_barbeiro' barbeiro.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Remover</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'adicionar_barbeiro' %}" class="btn btn-primary">Adicionar Barbeiro</a>
+    </div>
+</div>
+
+{% endblock %}

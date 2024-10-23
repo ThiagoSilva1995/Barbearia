@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastrar Cliente{% endblock %}
+
+{% block content %}
+<div class="container mt-3 d-flex justify-content-center">
+    <div class="card shadow-lg" style="width: 100%; max-width: 400px;">
+        <div class="card-body">
+            <h3 class="text-center">Cadastrar Cliente</h3>            
+
+            {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" class="mt-4">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_nome" class="form-label">Nome</label>
+                    <input type="text" name="nome" id="id_nome"
+                        class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="id_telefone" class="form-label">Número de
+                        Telefone</label>
+                    <input type="text" name="telefone" id="id_telefone"
+                        class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="id_data_nascimento" class="form-label">Data de
+                        Nascimento</label>
+                    <input type="date" name="data_nascimento"
+                        id="id_data_nascimento" class="form-control" required>
+                </div>
+                <button type="submit"
+                    class="btn btn-primary w-100">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
