@@ -250,16 +250,28 @@ def estatisticas(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_custom(request):
-    # Aqui você pode manipular seus modelos de Produto, Serviço, Barbeiro
+    # Consultar os produtos, barbeiros e tipos de corte
     produtos = Produto.objects.all()
     barbeiros = Barbeiro.objects.all()
     tipos_corte = TipoCorte.objects.all()
 
+    # Calcular o valor total dos cortes para cada barbeiro
+    for barbeiro in barbeiros:
+        # Filtrar os agendamentos feitos por este barbeiro
+        barbeiro_agendamentos = Agendamento.objects.filter(barbeiro=barbeiro)
+        # Somar o valor de cada corte realizado pelo barbeiro
+        barbeiro.valor_total = sum(agendamento.tipo_corte.preco for agendamento in barbeiro_agendamentos)
+
+    # Calcular o valor total acumulado de todos os barbeiros
+    valor_total_geral = sum(barbeiro.valor_total for barbeiro in barbeiros)
+
     context = {
         'produtos': produtos,
         'barbeiros': barbeiros,
-        'tipos_corte': tipos_corte
+        'tipos_corte': tipos_corte,
+        'valor_total_geral': valor_total_geral  # Passa o valor total geral para o template
     }
+
     return render(request, 'administrador/admin_custom.html', context)
 
 
