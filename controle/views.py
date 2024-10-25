@@ -65,8 +65,8 @@ def cadastrar_cliente(request):
         form = ClienteForm(request.POST)
         if form.is_valid():
             cliente = form.save(commit=False)
-            cliente.nome = cliente.nome.title()  
-            cliente.save()  
+            cliente.nome = cliente.nome.title()
+            cliente.save()
             messages.success(request, 'Cliente cadastrado com sucesso!')
             return redirect('cadastrar_cliente')
         else:
@@ -114,9 +114,9 @@ def marcar_horario(request):
         'barbeiros': barbeiros,
         'tipos_corte': tipos_corte,  # Passa os tipos de corte para o template
     })
-    
-    
-    
+
+
+
 def agendamentos(request):
     barbeiro_filter = request.GET.get('barbeiro')
     data_filter = request.GET.get('data')
@@ -134,7 +134,7 @@ def agendamentos(request):
     agendamentos = agendamentos.order_by('data', 'hora')
 
     # Paginação
-    paginator = Paginator(agendamentos, 10)  # 10 agendamentos por página
+    paginator = Paginator(agendamentos, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -147,9 +147,9 @@ def agendamentos(request):
         'barbeiros': barbeiros,
         'produtos': produtos,  # Inclua os produtos no contexto
     })
-    
-    
-    
+
+
+
 def remover_agendamento(request, agendamento_id):
     agendamento = get_object_or_404(Agendamento, id=agendamento_id)
     agendamento.delete()
@@ -167,7 +167,7 @@ def confirmar_pagamento(request, agendamento_id):
         total_pago = agendamento.tipo_corte.preco
         produtos_selecionados = request.POST.getlist('produtos')  # Produtos selecionados
         quantidades = request.POST.getlist('quantidades')  # Quantidades correspondentes
-        
+
         # Iterar sobre produtos e suas respectivas quantidades
         for i, produto_id in enumerate(produtos_selecionados):
             produto = get_object_or_404(Produto, id=produto_id)
@@ -201,7 +201,7 @@ def confirmar_pagamento(request, agendamento_id):
 
 
 
-    
+
 def estatisticas(request):
     # Total de Clientes Atendidos
     total_clientes_atendidos = Agendamento.objects.filter(pago=True).values('cliente').distinct().count()
@@ -299,7 +299,7 @@ def editar_produto(request, id):
             return redirect('admin_custom')
     else:
         form = ProdutoForm(instance=produto)
-    
+
     return render(request, 'administrador/produto/editar_produto.html', {'form': form, 'produto': produto})
 
 
@@ -311,8 +311,7 @@ def remover_produto(request, id):
 
 
 
-# Serviços (Cortes)
-
+# Serviços
 @user_passes_test(lambda u: u.is_superuser)
 def adicionar_servico(request):
     if request.method == "POST":
@@ -335,7 +334,7 @@ def editar_servico(request, servico_id):
             return redirect('admin_custom')
     else:
         form = TipoCorteForm(instance=servico)
-    
+
     return render(request, 'administrador/servico/editar_servico.html', {'form': form, 'servico': servico})
 
 
@@ -357,7 +356,7 @@ def adicionar_barbeiro(request):
             return redirect('admin_custom')
     else:
         form = BarbeiroForm()
-    
+
     return render(request, 'administrador/barbeiro/adicionar_barbeiro.html', {'form': form})
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -370,7 +369,7 @@ def editar_barbeiro(request, barbeiro_id):
             return redirect('admin_custom')
     else:
         form = BarbeiroForm(instance=barbeiro)
-    
+
     return render(request, 'administrador/barbeiro/editar_barbeiro.html', {'form': form, 'barbeiro': barbeiro})
 
 

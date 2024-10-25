@@ -23,16 +23,16 @@
         <button type="submit" class="btn btn-primary mt-3">Filtrar</button>
     </form>
 
-    <div class="overflow-x-auto bg-white rounded-xl shadow-lg p-4"> <!-- Adicionei a sombra aqui -->
+    <div class="overflow-x-auto bg-white rounded-xl shadow-lg p-3">
         <table class="min-w-full table-auto text-center border-collapse border border-gray-200 rounded-lg">
-            <thead class="bg-blue-600 text-white rounded-lg mb-4"> <!-- Adicionei a classe mb-4 -->
+            <thead class="bg-blue-500 text-white rounded-lg mb-4">
                 <tr>
-                    <th class="p-3 rounded-tl-lg">Cliente</th>
-                    <th class="p-3">Tipo de Corte</th>
-                    <th class="p-3">Barbeiro</th>
-                    <th class="p-3">Data e Hora</th>
-                    <th class="p-3">Preço</th>
-                    <th class="p-3 rounded-tr-lg">Ações</th>
+                    <th class="p-2 rounded-tl-sm">Cliente</th>
+                    <th class="p-2">Tipo de Corte</th>
+                    <th class="p-2">Barbeiro</th>
+                    <th class="p-2">Data e Hora</th>
+                    <th class="p-2">Preço</th>
+                    <th class="p-2 rounded-tr-sm">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,7 +46,7 @@
                     <td>
                         <!-- Botão para redirecionar à página de pagamento -->
                         <a href="{% url 'confirmar_pagamento' agendamento.id %}" class="btn btn-success btn-sm">Confirmar</a>
-    
+
                         <!-- Botão para remover o agendamento -->
                         <form method="POST" action="{% url 'remover_agendamento' agendamento.id %}" style="display: inline;">
                             {% csrf_token %}
@@ -58,8 +58,8 @@
             </tbody>
         </table>
     </div>
-    
-    
+
+
 
     <!-- Paginação -->
     <nav aria-label="Page navigation">

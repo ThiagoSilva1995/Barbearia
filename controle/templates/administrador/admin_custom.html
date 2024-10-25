@@ -7,33 +7,34 @@
     <h3 class="text-center mb-4 font-semibold text-lg">Gerenciamento</h3>
 
     <!-- Centralizar botões e adicionar espaçamento -->
-    <div class="flex justify-center space-x-4 mb-6">
-        <a href="{% url 'adicionar_produto' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Adicionar Produto</a>
-        <a href="{% url 'adicionar_servico' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Adicionar Serviço</a>
-        <a href="{% url 'adicionar_barbeiro' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Adicionar Barbeiro</a>
+    <div class="d-flex justify-content-center mb-2">
+        <a href="{% url 'adicionar_produto' %}" class="btn btn-primary mx-3 text-decoration-none ">Adicionar Produto</a>
+        <a href="{% url 'adicionar_servico' %}" class="btn btn-primary mx-3 text-decoration-none">Adicionar Serviço</a>
+        <a href="{% url 'adicionar_barbeiro' %}" class="btn btn-primary mx-3 text-decoration-none">Adicionar Barbeiro</a>
     </div>
+
 
     <!-- Produtos e Serviços lado a lado -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
         <!-- Produtos -->
         <div class="mt-5">
-            <div class="overflow-y-auto max-h-64 bg-white rounded-xl shadow-lg"> <!-- Limitar altura da tabela -->
+            <div class="overflow-y-auto max-h-64 bg-white rounded-xl shadow-lg">
                 <table class="min-w-full table-auto text-center border-collapse border border-gray-200 rounded-lg">
                     <thead class="bg-blue-600 text-white rounded-lg">
-                        <tr>
-                            <th class="p-3 rounded-tl-lg text-sm font-bold sticky top-0 bg-blue-600">Nome</th>
-                            <th class="p-3 text-sm font-bold sticky top-0 bg-blue-600">Preço</th>
-                            <th class="p-3 text-sm font-bold sticky top-0 bg-blue-600">Estoque</th>
-                            <th class="p-3 rounded-tr-lg text-sm font-bold sticky top-0 bg-blue-600">Ações</th>
+                        <tr class="bg-blue-400">
+                            <th class="p-2 rounded-tl-lg text-sm font-bold sticky">Nome</th>
+                            <th class="p-2 text-sm font-bold sticky">Preço</th>
+                            <th class="p-2 text-sm font-bold sticky">Estoque</th>
+                            <th class="p-2 rounded-tr-lg text-sm font-bold sticky">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="bg-gray-50">
                         {% for produto in produtos %}
                         <tr class="border-t border-gray-200 hover:bg-gray-100">
-                            <td class="p-3 text-sm font-bold">{{ produto.nome }}</td>
-                            <td class="p-3 text-sm font-bold">R$ {{ produto.preco }}</td>
-                            <td class="p-3 text-sm font-bold">{{ produto.estoque }}</td>
-                            <td class="p-3 flex justify-center space-x-2">
+                            <td class="p-2 text-sm font-bold">{{ produto.nome }}</td>
+                            <td class="p-2 text-sm font-bold">R$ {{ produto.preco }}</td>
+                            <td class="p-2 text-sm font-bold">{{ produto.estoque }}</td>
+                            <td class="p-2 flex justify-center space-x-2">
                                 <a href="{% url 'editar_produto' produto.id %}" class="bg-yellow-400 text-white px-2 py-1 rounded-lg text-xs hover:bg-yellow-500">Editar</a>
                                 <form method="POST" action="{% url 'remover_produto' produto.id %}">
                                     {% csrf_token %}
@@ -52,18 +53,18 @@
             <div class="overflow-y-auto max-h-64 bg-white rounded-xl shadow-lg"> <!-- Limitar altura da tabela -->
                 <table class="min-w-full table-auto text-center border-collapse border border-gray-200 rounded-lg">
                     <thead class="bg-blue-600 text-white rounded-lg">
-                        <tr>
-                            <th class="p-3 rounded-tl-lg text-sm font-bold sticky top-0 bg-blue-600">Nome do Serviço</th>
-                            <th class="p-3 text-sm font-bold sticky top-0 bg-blue-600">Preço</th>
-                            <th class="p-3 rounded-tr-lg text-sm font-bold sticky top-0 bg-blue-600">Ações</th>
+                        <tr class="bg-blue-400">
+                            <th class="p-2 rounded-tl-lg text-sm font-bold sticky">Nome do Serviço</th>
+                            <th class="p-2 text-sm font-bold sticky">Preço</th>
+                            <th class="p-2 rounded-tr-lg text-sm font-bold sticky">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="bg-gray-50">
                         {% for servico in tipos_corte %}
                         <tr class="border-t border-gray-200 hover:bg-gray-100">
-                            <td class="p-3 text-sm font-bold">{{ servico.nome }}</td>
-                            <td class="p-3 text-sm font-bold">R$ {{ servico.preco }}</td>
-                            <td class="p-3 flex justify-center space-x-2">
+                            <td class="p-2 text-sm font-bold">{{ servico.nome }}</td>
+                            <td class="p-2 text-sm font-bold">R$ {{ servico.preco }}</td>
+                            <td class="p-2 flex justify-center space-x-2">
                                 <a href="{% url 'editar_servico' servico.id %}" class="bg-yellow-400 text-white px-2 py-1 rounded-lg text-xs hover:bg-yellow-500">Editar</a>
                                 <form method="POST" action="{% url 'remover_servico' servico.id %}">
                                     {% csrf_token %}
@@ -80,31 +81,31 @@
 
     <!-- Barbeiros abaixo das tabelas -->
     <div class="w-full mt-5">
-        
+
         <div class="overflow-x-auto bg-white rounded-xl shadow-lg">
             <table class="min-w-full table-auto text-center border-collapse border border-gray-200 rounded-lg">
                 <thead class="bg-blue-600 text-white rounded-lg">
-                    <tr>
-                        <th class="p-3 rounded-tl-lg">Nome</th>
-                        <th class="p-3">Telefone</th>
-                        <th class="p-3">Valor Total de Cortes</th> 
-                        <th class="p-3 rounded-tr-lg">Ações</th>
+                    <tr class="bg-blue-400">
+                        <th class="p-2 rounded-tl-lg">Nome</th>
+                        <th class="p-2">Telefone</th>
+                        <th class="p-2">Valor Total de Cortes</th>
+                        <th class="p-2 rounded-tr-lg">Ações</th>
                     </tr>
                 </thead>
                 <tbody class="bg-gray-50">
                     {% for barbeiro in barbeiros %}
                     <tr class="border-t border-gray-200 hover:bg-gray-100">
-                        <td class="p-3">{{ barbeiro.nome }}</td>
-                        <td class="p-3">{{ barbeiro.telefone }}</td>
-                        <td class="p-3">R$ {{ barbeiro.valor_total }}</td>
-                        <td class="p-3 flex justify-center space-x-2">
+                        <td class="p-2">{{ barbeiro.nome }}</td>
+                        <td class="p-2">{{ barbeiro.telefone }}</td>
+                        <td class="p-2">R$ {{ barbeiro.valor_total }}</td>
+                        <td class="p-2 flex justify-center space-x-2">
                             <a href="{% url 'editar_barbeiro' barbeiro.id %}" class="bg-yellow-400 text-white px-2 py-1 rounded-lg text-xs hover:bg-yellow-500">Editar</a>
                             <form method="POST" action="{% url 'remover_barbeiro' barbeiro.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-red-600">Remover</button>
                             </form>
                         </td>
-                    </tr>                    
+                    </tr>
                     {% endfor %}
                     <tr>
                         <td colspan="4" class="text-center py-3 font-bold">Valor Total de Todos os Barbeiros: R$ {{ valor_total_geral }}</td>

@@ -7,19 +7,19 @@
     <h1 class="text-center mb-4">Estatísticas da Barbearia</h1>
 
     <!-- Card de Estatísticas Principais -->
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card text-white bg-primary mb-3">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-6 d-flex justify-content-center">
+            <div class="card text-white bg-primary mb-2 w-50">
                 <div class="card-body">
-                    <h5 class="card-title">Clientes Atendidos = {{ total_clientes_atendidos }}</h5>
+                    <h5 class="card-title d-flex p-0 justify-content-center rounded-tl-lg">Clientes Atendidos  {{ total_clientes_atendidos }}</h5>
 
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card text-white bg-warning mb-3">
+        <div class="col-md-6 d-flex justify-content-center">
+            <div class="card text-white bg-warning mb-2 w-50">
                 <div class="card-body">
-                    <h5 class="card-title">Produtos Vendidos = {{ total_produtos_vendidos }}</h5>
+                    <h5 class="card-title d-flex p-0 justify-content-center rounded-tl-lg rounded-tl-lg">Produtos Vendidos  {{ total_produtos_vendidos }}</h5>
                 </div>
             </div>
         </div>
@@ -139,34 +139,54 @@
         </div>
 
         <!-- Aniversariantes do Mês -->
-        <div class="card mb-4 col-md-6">
-            <div class="card-body">
-                <h5 class="card-title">Aniversariantes do Mês</h5>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Nome Completo</th>
-                                <th>Data de Nascimento</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for aniversariante in aniversariantes_do_mes %}
-                            <tr>
-                                <td>{{ aniversariante.nome }}</td>
-                                <td>{{ aniversariante.data_nascimento|date:"d/m" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+         <!-- Aniversariantes do Mês -->
+<div class="card mb-4 col-md-6">
+    <div class="card-body">
+        <h5 class="card-title">Aniversariantes do Mês</h5>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nome Completo</th>
+                        <th>Data de Nascimento</th>
+                        <th>Ação</th> <!-- Adicionando uma nova coluna para a ação -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aniversariante in aniversariantes_do_mes %}
+                    <tr>
+                        <td>{{ aniversariante.nome }}</td>
+                        <td>{{ aniversariante.data_nascimento|date:"d/m" }}</td>
+                        <td>                            
+                            <a class="btn btn-success enviar-whatsapp" data-nome="{{ aniversariante.nome }}" data-telefone="{{ aniversariante.telefone }}" aria-label="Enviar mensagem para {{ aniversariante.nome }}">
+                                <i class="bi bi-whatsapp"></i> <!-- Ícone do WhatsApp -->
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    </div>
+</div>
+
     </div>
 </div>
 
 <!-- Paginação e Javascript para Atualizar Tabelas -->
 <script>
+
+document.querySelectorAll('.enviar-whatsapp').forEach(button => {
+        button.addEventListener('click', function() {
+            const nome = this.getAttribute('data-nome');
+            const telefone = this.getAttribute('data-telefone').replace(/\s/g, ''); // Remove espaços
+            const mensagem = `Feliz aniversário, ${encodeURIComponent(nome)}!`;
+            const url = `https://api.whatsapp.com/send?phone=${telefone}&text=${mensagem}`;
+            window.open(url, '_blank'); // Abre em nova aba
+        });
+    });
+
+    
     let currentPageClientes = 1;
     let currentPageCortes = 1;
     let currentPageProdutos = 1;
@@ -180,12 +200,17 @@
     }
 
     function updatePagination(paginationId, currentPage, totalPages) {
-        const prevButton = document.querySelector(`${paginationId} #prev-page`);
-        const nextButton = document.querySelector(`${paginationId} #next-page`);
+    const prevButton = document.querySelector(`${paginationId} #prev-page`);
+    const nextButton = document.querySelector(`${paginationId} #next-page`);
 
+    // Verifica se os botões foram encontrados antes de acessar parentElement
+    if (prevButton && nextButton) {
         prevButton.parentElement.classList.toggle("disabled", currentPage === 1);
         nextButton.parentElement.classList.toggle("disabled", currentPage >= totalPages);
+    } else {
+        console.error("Elementos prevButton ou nextButton não foram encontrados.");
     }
+}
 
     // Funções de Eventos para as Tabelas
     document.getElementById("prev-page").addEventListener("click", function (e) {
