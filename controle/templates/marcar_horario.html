@@ -23,14 +23,19 @@
             <form method="POST" class="mt-3">
                 {% csrf_token %}
                 <div class="mb-3">
-                    <label for="id_cliente" class="form-label">Cliente</label>
-                    <select name="cliente" id="id_cliente" class="form-select" required>
-                        <option value disabled selected>Selecione um cliente</option>
+                    <label for="id_cliente_search" class="form-label">Cliente</label>
+                    <input type="text" id="id_cliente_search" class="form-control" placeholder="Digite o nome do cliente..." autocomplete="off">
+                
+                    <!-- Sugestões de clientes -->
+                    <div id="cliente_sugestoes" class="list-group mt-1" style="max-height: 100px; overflow-y: auto;">
                         {% for cliente in clientes %}
-                        <option value="{{ cliente.id }}">{{ cliente.nome }}</option>
+                            <a href="#" class="list-group-item list-group-item-action" data-id="{{ cliente.id }}">{{ cliente.nome }}</a>
                         {% endfor %}
-                    </select>
+                    </div>
                 </div>
+                
+                <!-- Campo oculto para enviar o ID do cliente selecionado -->
+                <input type="hidden" name="cliente" id="selected_cliente_id" required>
 
                 <div class="mb-3">
                     <label for="id_barbeiro" class="form-label">Barbeiro</label>
@@ -43,13 +48,17 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="id_tipo_corte" class="form-label">Tipo de Corte</label>
-                    <select name="tipo_corte" id="id_tipo_corte" class="form-select" required>
-                        <option value disabled selected>Selecione o tipo de corte</option>
+                    <label for="id_tipo_corte" class="form-label">Tipos de Corte</label>
+                    <div>
                         {% for corte in tipos_corte %}
-                        <option value="{{ corte.id }}">{{ corte.nome }}</option>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="tipo_corte" id="tipo_corte_{{ corte.id }}" value="{{ corte.id }}">
+                            <label class="form-check-label" for="tipo_corte_{{ corte.id }}">
+                                {{ corte.nome }}
+                            </label>
+                        </div>
                         {% endfor %}
-                    </select>
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -72,4 +81,53 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    // Seleciona o campo de entrada, a div de sugestões e o campo oculto
+    const input = document.getElementById('id_cliente_search');
+    const sugestoesDiv = document.getElementById('cliente_sugestoes');
+    const hiddenInput = document.getElementById('selected_cliente_id');
+
+    // Filtra a lista conforme o usuário digita
+    input.addEventListener('input', function() {
+        const query = input.value.toLowerCase();
+
+        // Exibir a lista completa quando o campo estiver vazio
+        if (query === '') {
+            Array.from(sugestoesDiv.children).forEach(item => item.style.display = 'block');
+        } else {
+            // Filtra a lista conforme o usuário digita
+            Array.from(sugestoesDiv.children).forEach(item => {
+                const clienteNome = item.textContent.toLowerCase();
+                item.style.display = clienteNome.includes(query) ? 'block' : 'none';
+            });
+        }
+    });
+
+    // Ao clicar em um nome, preenche o campo e oculta as sugestões
+    sugestoesDiv.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = e.target;
+
+        if (target.matches('.list-group-item')) {
+            input.value = target.textContent;
+            hiddenInput.value = target.getAttribute('data-id');
+            sugestoesDiv.style.display = 'none';  // Oculta a lista
+        }
+    });
+
+    // Exibe novamente a lista quando o campo de entrada ganha foco
+    input.addEventListener('focus', function() {
+        sugestoesDiv.style.display = 'block';
+    });
+
+    // Oculta a lista ao clicar fora do campo e da lista
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !sugestoesDiv.contains(e.target)) {
+            sugestoesDiv.style.display = 'none';
+        }
+    });
+</script>
+
 {% endblock %}

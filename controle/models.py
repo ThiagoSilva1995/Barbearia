@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 
 class Cliente(models.Model):
     nome = models.CharField(max_length=100)
@@ -36,13 +37,15 @@ class Produto(models.Model):
 class Agendamento(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     barbeiro = models.ForeignKey(Barbeiro, on_delete=models.CASCADE)
-    tipo_corte = models.ForeignKey(TipoCorte, on_delete=models.CASCADE)
+    tipo_corte = models.ManyToManyField(TipoCorte)  # Alterado para ManyToManyField
     data = models.DateField()
     hora = models.TimeField()
     pago = models.BooleanField(default=False)
-    produtos = models.ManyToManyField(Produto, blank=True)  # Relacionamento com produtos vendidos
+    produtos = models.ManyToManyField(Produto, blank=True)
     is_confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.cliente} - {self.barbeiro} - {self.data} {self.hora}"
 
+    def calcular_valor_total(self):
+        return self.tipo_corte.aggregate(total=Sum('preco'))['total'] or 0  # Soma os preços

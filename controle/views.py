@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.contrib import messages
@@ -6,6 +6,7 @@ from django.db.models import Count, Sum
 from django.utils import timezone
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import LoginView
+from django.db.models.functions import ExtractDay, ExtractMonth
 
 
 from datetime import datetime, timedelta
@@ -15,28 +16,40 @@ from .models import Agendamento, Barbeiro, Cliente, TipoCorte, Produto
 
 
 
-def admin_custom(request):
-    return render(request, 'administrador/admin_custom.html')
+
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
+
+
 
 def marcar_horario(request):
     if request.method == "POST":
         cliente_id = request.POST.get('cliente')
         barbeiro_id = request.POST.get('barbeiro')
-        tipo_corte_id = request.POST.get('tipo_corte')
+        tipo_corte_ids = request.POST.getlist('tipo_corte')  # Obtendo uma lista de IDs de tipos de corte
         data = request.POST.get('data')
         hora = request.POST.get('hora')
+
+
 
         if Agendamento.objects.filter(barbeiro_id=barbeiro_id, data=data, hora=hora).exists():
             messages.error(request, 'Horário já agendado para o barbeiro.', extra_tags='danger')
             return redirect('marcar_horario')
 
+        if not tipo_corte_ids:
+            messages.error(request, 'Nenhum tipo de corte selecionado.', extra_tags='danger')
+            return redirect('marcar_horario')
 
-        # Cria o agendamento
-        agendamento = Agendamento(cliente_id=cliente_id, barbeiro_id=barbeiro_id, tipo_corte_id=tipo_corte_id, data=data, hora=hora)
-        agendamento.save()
+        # Criação do agendamento
+        agendamento = Agendamento(cliente_id=cliente_id, barbeiro_id=barbeiro_id, data=data, hora=hora)
+        agendamento.save()  # Salva o agendamento antes de adicionar os tipos de corte
+
+        # Adiciona os tipos de corte ao agendamento
+        for tipo_corte_id in tipo_corte_ids:
+            tipo_corte = TipoCorte.objects.get(id=tipo_corte_id)
+            agendamento.tipo_corte.add(tipo_corte)  # Adiciona o tipo de corte ao agendamento
+
         messages.success(request, 'Horário agendado com sucesso!')
         return redirect('marcar_horario')
     else:
@@ -49,9 +62,9 @@ def marcar_horario(request):
             horarios_disponiveis.append(inicio.strftime("%H:%M"))
             inicio += timedelta(minutes=30)
 
-        clientes = Cliente.objects.all()
-        barbeiros = Barbeiro.objects.all()
-        tipos_corte = TipoCorte.objects.all()  # Obtém todos os tipos de corte
+        clientes = Cliente.objects.all().order_by('nome')
+        barbeiros = Barbeiro.objects.all().order_by('nome')
+        tipos_corte = TipoCorte.objects.all().order_by('nome')
 
     return render(request, 'marcar_horario.html', {
         'horarios_disponiveis': horarios_disponiveis,
@@ -59,6 +72,7 @@ def marcar_horario(request):
         'barbeiros': barbeiros,
         'tipos_corte': tipos_corte,  # Passa os tipos de corte para o template
     })
+
 
 def cadastrar_cliente(request):
     if request.method == "POST":
@@ -76,44 +90,6 @@ def cadastrar_cliente(request):
     return render(request, 'cadastrar_cliente.html', {'form': form})
 
 
-def marcar_horario(request):
-    if request.method == "POST":
-        cliente_id = request.POST.get('cliente')
-        barbeiro_id = request.POST.get('barbeiro')
-        tipo_corte_id = request.POST.get('tipo_corte')
-        data = request.POST.get('data')
-        hora = request.POST.get('hora')
-
-        # Verifica se o horário já está agendado
-        if Agendamento.objects.filter(barbeiro_id=barbeiro_id, data=data, hora=hora).exists():
-            messages.error(request, 'Horário já agendado para o barbeiro.')
-            return redirect('marcar_horario')
-
-        # Cria o agendamento
-        agendamento = Agendamento(cliente_id=cliente_id, barbeiro_id=barbeiro_id, tipo_corte_id=tipo_corte_id, data=data, hora=hora)
-        agendamento.save()
-        messages.success(request, 'Horário agendado com sucesso!')
-        return redirect('marcar_horario')
-    else:
-        # Gera a lista de horários disponíveis
-        horarios_disponiveis = []
-        inicio = datetime.strptime("08:00", "%H:%M")
-        fim = datetime.strptime("19:00", "%H:%M")
-
-        while inicio <= fim:
-            horarios_disponiveis.append(inicio.strftime("%H:%M"))
-            inicio += timedelta(minutes=30)
-
-        clientes = Cliente.objects.all()
-        barbeiros = Barbeiro.objects.all()
-        tipos_corte = TipoCorte.objects.all()  # Obtém todos os tipos de corte
-
-    return render(request, 'marcar_horario.html', {
-        'horarios_disponiveis': horarios_disponiveis,
-        'clientes': clientes,
-        'barbeiros': barbeiros,
-        'tipos_corte': tipos_corte,  # Passa os tipos de corte para o template
-    })
 
 
 
@@ -138,17 +114,21 @@ def agendamentos(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Obter todos os barbeiros e produtos
+    # Obter todos os barbeiros
     barbeiros = Barbeiro.objects.all()
-    produtos = Produto.objects.all()  # Adicionando a lista de produtos
 
     return render(request, 'agendamentos.html', {
         'page_obj': page_obj,
         'barbeiros': barbeiros,
-        'produtos': produtos,  # Inclua os produtos no contexto
+        'agendamentos': [{
+            'id': agendamento.id,
+            'cliente': agendamento.cliente.nome,
+            'barbeiro': agendamento.barbeiro.nome,
+            'tipos_corte': [str(corte) for corte in agendamento.tipo_corte.all()],  # Obtém todos os tipos de corte
+            'data': agendamento.data,
+            'hora': agendamento.hora,
+        } for agendamento in page_obj]
     })
-
-
 
 def remover_agendamento(request, agendamento_id):
     agendamento = get_object_or_404(Agendamento, id=agendamento_id)
@@ -162,18 +142,20 @@ def remover_agendamento(request, agendamento_id):
 def confirmar_pagamento(request, agendamento_id):
     agendamento = get_object_or_404(Agendamento, id=agendamento_id)
     produtos = Produto.objects.all()
+    
+    # Calcular o valor total dos cortes selecionados
+    valor_total = sum(corte.preco for corte in agendamento.tipo_corte.all())
 
     if request.method == 'POST':
-        total_pago = agendamento.tipo_corte.preco
-        produtos_selecionados = request.POST.getlist('produtos')  # Produtos selecionados
-        quantidades = request.POST.getlist('quantidades')  # Quantidades correspondentes
+        total_pago = valor_total
+        produtos_selecionados = request.POST.getlist('produtos')
+        quantidades = request.POST.getlist('quantidades')
 
-        # Iterar sobre produtos e suas respectivas quantidades
+        # Iterar sobre produtos e quantidades
         for i, produto_id in enumerate(produtos_selecionados):
             produto = get_object_or_404(Produto, id=produto_id)
-            quantidade = int(quantidades[i])  # Obter a quantidade informada pelo usuário
+            quantidade = int(quantidades[i])
 
-            # Verificar estoque e ajustar o total pago
             if produto.estoque >= quantidade:
                 produto.estoque -= quantidade
                 produto.save()
@@ -183,24 +165,18 @@ def confirmar_pagamento(request, agendamento_id):
                 messages.error(request, f"O produto {produto.nome} não tem estoque suficiente.")
                 return redirect('confirmar_pagamento', agendamento_id=agendamento_id)
 
-        # Marca o agendamento como pago e confirmado
         agendamento.pago = True
         agendamento.is_confirmed = True
         agendamento.save()
 
-        # Redireciona de volta para os agendamentos
         messages.success(request, "Pagamento confirmado e estoque atualizado!")
         return redirect('agendamentos')
 
     return render(request, 'confirmar_pagamento_cliente.html', {
         'agendamento': agendamento,
-        'produtos': produtos
+        'produtos': produtos,
+        'valor_total': valor_total  # Inclua o valor total dos cortes no contexto
     })
-
-
-
-
-
 
 def estatisticas(request):
     # Total de Clientes Atendidos
@@ -211,27 +187,30 @@ def estatisticas(request):
     receita_produtos = Agendamento.objects.filter(pago=True).aggregate(Sum('produtos__preco'))['produtos__preco__sum'] or 0
     receita_total = receita_cortes + receita_produtos
 
-    # Número de Agendamentos por Barbeiro
-    agendamentos_por_barbeiro = Barbeiro.objects.annotate(total_agendamentos=Count('agendamento'))
+    # Número de Agendamentos por Barbeiro - Ordenado pelo nome do barbeiro
+    agendamentos_por_barbeiro = Barbeiro.objects.annotate(total_agendamentos=Count('agendamento')).order_by('nome')
 
-    # Cortes Mais Populares
-    cortes_populares = Agendamento.objects.values('tipo_corte__nome').annotate(total=Count('tipo_corte')).order_by('-total')
+    # Cortes Mais Populares - Ordenado pelo nome do corte
+    cortes_populares = Agendamento.objects.values('tipo_corte__nome').annotate(total=Count('tipo_corte')).order_by('tipo_corte__nome')
 
-    # Clientes Fiéis - Removendo a limitação para mostrar todos
-    clientes_fieis = Cliente.objects.annotate(total_visitas=Count('agendamento')).order_by('nome')  # Organizando em ordem alfabética
+    # Clientes Fiéis - Organizando em ordem alfabética
+    clientes_fieis = Cliente.objects.annotate(total_visitas=Count('agendamento')).order_by('nome')
 
     # Total de Produtos Vendidos
     total_produtos_vendidos = Produto.objects.filter(agendamento__in=Agendamento.objects.filter(pago=True)).count()
 
-    # Produtos vendidos e suas quantidades
-    produtos_vendidos = Agendamento.objects.filter(pago=True).values('produtos__nome').annotate(total_vendido=Count('produtos')).order_by('-total_vendido')
+    # Produtos vendidos e suas quantidades - Ordenado pelo nome do produto
+    produtos_vendidos = Agendamento.objects.filter(pago=True).values('produtos__nome').annotate(total_vendido=Count('produtos')).order_by('produtos__nome')
 
-    # Lista de todos os produtos com suas quantidades em estoque
-    produtos = Produto.objects.all()  # Buscando todos os produtos
+    # Lista de todos os produtos com suas quantidades em estoque - Ordenado pelo nome do produto
+    produtos = Produto.objects.all().order_by('nome')
 
-    # Aniversariantes do Mês
+    # Aniversariantes do Mês - Ordenado pela data de nascimento (dia e mês)
     hoje = timezone.now()
-    aniversariantes_do_mes = Cliente.objects.filter(data_nascimento__month=hoje.month).order_by('data_nascimento')
+    aniversariantes_do_mes = Cliente.objects.filter(data_nascimento__month=hoje.month).annotate(
+        dia_nascimento=ExtractDay('data_nascimento'),
+        mes_nascimento=ExtractMonth('data_nascimento')
+    ).order_by('mes_nascimento', 'dia_nascimento')
 
     context = {
         'total_clientes_atendidos': total_clientes_atendidos,
@@ -241,7 +220,7 @@ def estatisticas(request):
         'clientes_fieis': clientes_fieis,
         'total_produtos_vendidos': total_produtos_vendidos,
         'produtos_vendidos': produtos_vendidos,
-        'produtos': produtos,  # Adicionando a lista de produtos
+        'produtos': produtos,
         'aniversariantes_do_mes': aniversariantes_do_mes,
     }
 
@@ -260,7 +239,10 @@ def admin_custom(request):
         # Filtrar os agendamentos feitos por este barbeiro
         barbeiro_agendamentos = Agendamento.objects.filter(barbeiro=barbeiro)
         # Somar o valor de cada corte realizado pelo barbeiro
-        barbeiro.valor_total = sum(agendamento.tipo_corte.preco for agendamento in barbeiro_agendamentos)
+        barbeiro.valor_total = sum(
+            sum(corte.preco for corte in agendamento.tipo_corte.all())
+            for agendamento in barbeiro_agendamentos
+        )
 
     # Calcular o valor total acumulado de todos os barbeiros
     valor_total_geral = sum(barbeiro.valor_total for barbeiro in barbeiros)

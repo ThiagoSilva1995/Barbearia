@@ -39,10 +39,22 @@
                 {% for agendamento in page_obj %}
                 <tr id="agendamentoRow{{ agendamento.id }}">
                     <td class="text-sm font-bold">{{ agendamento.cliente.nome }}</td>
-                    <td class="text-sm font-bold">{{ agendamento.tipo_corte.nome }}</td>
+
+                    <!-- Listar todos os tipos de corte selecionados -->
+                    <td class="text-sm font-bold">
+                        {% for corte in agendamento.tipo_corte.all %}
+                            {{ corte.nome }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+
                     <td class="text-sm font-bold">{{ agendamento.barbeiro.nome }}</td>
                     <td class="text-sm font-bold">{{ agendamento.data|date:"l - d/m" }} - {{ agendamento.hora|time:"H:i" }}</td>
-                    <td class="text-sm font-bold">R$ {{ agendamento.tipo_corte.preco }}</td>
+
+                    <!-- Exibir o valor total dos cortes selecionados -->
+                    <td class="text-sm font-bold">
+                        R$ {{ agendamento.calcular_valor_total }}
+                    </td>
+
                     <td>
                         <!-- Botão para redirecionar à página de pagamento -->
                         <a href="{% url 'confirmar_pagamento' agendamento.id %}" class="btn btn-success btn-sm">Confirmar</a>
@@ -58,8 +70,6 @@
             </tbody>
         </table>
     </div>
-
-
 
     <!-- Paginação -->
     <nav aria-label="Page navigation">
