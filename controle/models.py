@@ -3,7 +3,7 @@ from django.db.models import Sum
 
 class Cliente(models.Model):
     nome = models.CharField(max_length=100)
-    telefone = models.CharField(max_length=15, unique=True)
+    telefone = models.CharField(max_length=15)
     data_nascimento = models.DateField()
 
     def __str__(self):
@@ -11,7 +11,7 @@ class Cliente(models.Model):
 
 class Barbeiro(models.Model):
     nome = models.CharField(max_length=100)
-    telefone = models.CharField(max_length=15, default='000000000')
+    telefone = models.CharField(max_length=15)
 
     def __str__(self):
         return self.nome

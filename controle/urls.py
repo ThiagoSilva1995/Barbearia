@@ -10,6 +10,7 @@ urlpatterns = [
     path('estatisticas/', views.estatisticas, name='estatisticas'),
 	path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
 	
+	
     
     path('admin-custom/', views.admin_custom, name='admin_custom'),
 	 

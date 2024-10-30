@@ -258,7 +258,6 @@ def admin_custom(request):
 
 
 #Produto
-
 @user_passes_test(lambda u: u.is_superuser)
 def adicionar_produto(request):
     if request.method == "POST":
@@ -326,9 +325,10 @@ def remover_servico(request, servico_id):
     servico.delete()
     return redirect('admin_custom')
 
+
+
+
 # Barbeiros
-
-
 @user_passes_test(lambda u: u.is_superuser)
 def adicionar_barbeiro(request):
     if request.method == "POST":

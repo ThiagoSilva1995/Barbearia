@@ -38,7 +38,15 @@
             <tbody>
                 {% for agendamento in page_obj %}
                 <tr id="agendamentoRow{{ agendamento.id }}">
-                    <td class="text-sm font-bold">{{ agendamento.cliente.nome }}</td>
+                    <td class="text-sm font-bold">
+                        <a href="#" 
+                           class="enviar-whatsapp" 
+                           data-nome="{{ agendamento.cliente.nome }}" 
+                           data-telefone="{{ agendamento.cliente.telefone }}"
+                           style="text-decoration: none; color: inherit;">
+                            <span>{{ agendamento.cliente.nome }}</span>
+                        </a>
+                    </td>
 
                     <!-- Listar todos os tipos de corte selecionados -->
                     <td class="text-sm font-bold">
@@ -96,4 +104,25 @@
         </ul>
     </nav>
 </div>
+
+<script>
+    document.querySelectorAll('.enviar-whatsapp').forEach(button => {
+    button.addEventListener('click', function() {
+        let nome = this.getAttribute('data-nome');
+        const telefone = this.getAttribute('data-telefone').replace(/\s/g, ''); // Remove espaços
+        
+        // Remove conteúdo entre parênteses, incluindo os parênteses
+        nome = nome.replace(/\s*\(.*?\)\s*/g, '').trim();
+        
+        // Adicione %0A onde deseja pular a linha
+        const mensagem = `Olá, ${encodeURIComponent(nome)}!`;
+        
+        // URL do WhatsApp Web
+        const url = `https://web.whatsapp.com/send?phone=${telefone}&text=${mensagem}`;
+        
+        window.open(url, '_blank'); // Abre em nova aba
+    });
+});
+</script>
+
 {% endblock %}

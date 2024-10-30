@@ -103,72 +103,86 @@
         </div>
     </div>
 
-    <!-- Lista de Clientes Fiéis com Paginação e Aniversariantes do Mês -->
-    <div class="row mb-4">
-        <!-- Lista de Clientes Fiéis -->
-        <div class="card mb-4 col-md-6">
-            <div class="card-body">
-                <h5 class="card-title">Lista de Clientes Fiéis</h5>
-                <div class="table-responsive">
-                    <table id="clientes-table" class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Nome Completo</th>
-                                <th>Data de Nascimento</th>
-                                <th>Qtd Cortes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clientes-lista">
-                            {% for cliente in clientes_fieis %}
-                            <tr>
-                                <td>{{ cliente.nome }}</td>
-                                <td>{{ cliente.data_nascimento|date:"d/m" }}</td>
-                                <td>{{ cliente.total_visitas }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center" id="clientes-pagination">
-                        <li class="page-item"><a class="page-link" href="#" id="prev-page">Anterior</a></li>
-                        <li class="page-item"><a class="page-link" href="#" id="next-page">Próximo</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </div>
 
-        <!-- Aniversariantes do Mês -->
-         <!-- Aniversariantes do Mês -->
-<div class="card mb-4 col-md-6">
-    <div class="card-body">
-        <h5 class="card-title">Aniversariantes do Mês</h5>
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Nome Completo</th>
-                        <th>Data de Nascimento</th>
-                        <th>Ação</th> <!-- Adicionando uma nova coluna para a ação -->
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for aniversariante in aniversariantes_do_mes %}
-                    <tr>
-                        <td>{{ aniversariante.nome }}</td>
-                        <td>{{ aniversariante.data_nascimento|date:"d/m" }}</td>
-                        <td>                            
-                            <a class="btn btn-success enviar-whatsapp" data-nome="{{ aniversariante.nome }}" data-telefone="{{ aniversariante.telefone }}" aria-label="Enviar mensagem para {{ aniversariante.nome }}">
-                                <i class="bi bi-whatsapp"></i> <!-- Ícone do WhatsApp -->
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    <div class="row mb-4">
+    <!-- Lista de Clientes -->
+    <div class="card mb-4 col-md-6">
+        <div class="card-body">
+            <h5 class="card-title">Clientes</h5>
+            <div class="table-responsive">
+                <table id="clientes-table" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nome Completo</th>
+                            <th>Data de Nascimento</th>
+                            <th>Qtd Cortes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientes-lista">
+                        {% for cliente in clientes_fieis %}
+                        <tr>
+                            <td>
+                                <a href="#" 
+                                   class="enviar-whatsapp1" 
+                                   data-nome="{{ cliente.nome }}" 
+                                   data-telefone="{{ cliente.telefone }}"
+                                   style="text-decoration: none; color: inherit;">
+                                    <span>{{ cliente.nome }}</span>
+                                </a>
+                            </td>
+
+                            <td>{{ cliente.data_nascimento|date:"d/m" }}</td>
+                            <td>{{ cliente.total_visitas }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center" id="clientes-pagination">
+                    <li class="page-item"><a class="page-link" href="#" id="prev-page">Anterior</a></li>
+                    <li class="page-item"><a class="page-link" href="#" id="next-page">Próximo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Aniversariantes do Mês -->
+    <div class="card mb-4 col-md-6">
+        <div class="card-body">
+            <h5 class="card-title">Aniversariantes do Mês</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nome Completo</th>
+                            <th>Data de Nascimento</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for aniversariante in aniversariantes_do_mes %}
+                        <tr>
+                            <td>{{ aniversariante.nome }}</td>
+                            <td>{{ aniversariante.data_nascimento|date:"d/m" }}</td>
+                            <td>
+                                <a class="btn btn-success enviar-whatsapp" 
+                                data-nome="{{ aniversariante.nome }}" 
+                                data-telefone="{{ aniversariante.telefone }}" 
+                                aria-label="Enviar mensagem para {{ aniversariante.nome }}">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
 
     </div>
 </div>
@@ -177,14 +191,42 @@
 <script>
 
 document.querySelectorAll('.enviar-whatsapp').forEach(button => {
+    button.addEventListener('click', function() {
+        let nome = this.getAttribute('data-nome');
+        const telefone = this.getAttribute('data-telefone').replace(/\s/g, ''); // Remove espaços
+        
+        // Remove conteúdo entre parênteses, incluindo os parênteses
+        nome = nome.replace(/\s*\(.*?\)\s*/g, '').trim();
+        
+        // Adicione %0A onde deseja pular a linha
+        const mensagem = `Hoje é o seu dia, que maravilha!%0A%0A A barbearia do Thales te deseja um feliz aniversário.%0A%0A(Que darei eu ao Senhor por todos os benefícios que me tem feito?), ${encodeURIComponent(nome)}!`;
+        
+        // URL do WhatsApp Web
+        const url = `https://web.whatsapp.com/send?phone=${telefone}&text=${mensagem}`;
+        
+        window.open(url, '_blank'); // Abre em nova aba
+    });
+});
+
+document.querySelectorAll('.enviar-whatsapp1').forEach(button => {
         button.addEventListener('click', function() {
-            const nome = this.getAttribute('data-nome');
+            let nome = this.getAttribute('data-nome');
             const telefone = this.getAttribute('data-telefone').replace(/\s/g, ''); // Remove espaços
-            const mensagem = `Feliz aniversário, ${encodeURIComponent(nome)}!`;
+            
+            // Remove conteúdo entre parênteses, incluindo os parênteses
+            nome = nome.replace(/\s*\(.*?\)\s*/g, '').trim();
+            
+            // Mensagem personalizada para clientes
+            const mensagem = `Olá, ${encodeURIComponent(nome)}! Estamos entrando em contato com você.`;
+            
+            // URL do WhatsApp Web
             const url = `https://api.whatsapp.com/send?phone=${telefone}&text=${mensagem}`;
+            
             window.open(url, '_blank'); // Abre em nova aba
         });
     });
+
+
 
     
     let currentPageClientes = 1;
