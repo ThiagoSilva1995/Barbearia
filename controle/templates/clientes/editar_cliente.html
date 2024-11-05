@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center">Editar Cliente</h2>
+                    {% if messages %}
+                        <div>
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="nome" class="form-label">Nome</label>
+                            <input type="text" id="nome" name="nome" class="form-control" value="{{ cliente.nome }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telefone" class="form-label">Telefone</label>
+                            <input type="text" id="telefone" name="telefone" class="form-control" value="{{ cliente.telefone }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="data_nascimento" class="form-label">Data de Nascimento</label>
+                            <input type="date" id="data_nascimento" name="data_nascimento" class="form-control" value="{{ cliente.data_nascimento|date:'Y-m-d' }}" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-success mt-3">Salvar Alterações</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

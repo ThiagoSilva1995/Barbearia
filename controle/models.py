@@ -13,6 +13,11 @@ class Barbeiro(models.Model):
     nome = models.CharField(max_length=100)
     telefone = models.CharField(max_length=15)
 
+    def save(self, *args, **kwargs):
+        # Formata o nome para que tenha as primeiras letras maiúsculas
+        self.nome = self.nome.title()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.nome
 

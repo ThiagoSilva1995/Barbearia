@@ -81,39 +81,41 @@
     </div>
 
     <!-- Barbeiros abaixo das tabelas -->
-    <div class="w-full mt-5">
-
-        <div class="overflow-x-auto bg-white rounded-xl shadow-lg">
-            <table class="min-w-full table-auto text-center border-collapse border border-gray-200 rounded-lg">
-                <thead class="bg-blue-600 text-white rounded-lg">
-                    <tr class="bg-blue-400">
-                        <th class="p-2 rounded-tl-lg">Nome</th>
-                        <th class="p-2">Telefone</th>
-                        <th class="p-2">Valor Total de Cortes</th>
-                        <th class="p-2 rounded-tr-lg">Ações</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-gray-50">
-                    {% for barbeiro in barbeiros %}
-                    <tr class="border-t border-gray-200 hover:bg-gray-100">
-                        <td class="p-2">{{ barbeiro.nome }}</td>
-                        <td class="p-2">{{ barbeiro.telefone }}</td>
-                        <td class="p-2">R$ {{ barbeiro.valor_total }}</td>
-                        <td class="p-2 flex justify-center space-x-2">
-                            <a href="{% url 'editar_barbeiro' barbeiro.id %}" class="bg-yellow-400 text-white px-2 py-1 rounded-lg text-xs hover:bg-yellow-500">Editar</a>
-                            <form method="POST" action="{% url 'remover_barbeiro' barbeiro.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-red-600">Remover</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    <tr>
-                        <td colspan="4" class="text-center py-3 font-bold">Valor Total de Todos os Barbeiros: R$ {{ valor_total_geral }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+<div class="w-full mt-5">
+    <div class="overflow-x-auto bg-white rounded-xl shadow-lg">
+        <table class="min-w-full table-auto text-center border-collapse border border-gray-200 rounded-lg">
+            <thead class="bg-blue-600 text-white rounded-lg">
+                <tr class="bg-blue-400">
+                    <th class="p-2 rounded-tl-lg">Nome</th>
+                    <th class="p-2">Telefone</th>
+                    <th class="p-2">Valor Mensal</th>
+                    <th class="p-2">Valor Semanal</th>
+                    <th class="p-2 rounded-tr-lg">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="bg-gray-50">
+                {% for barbeiro in barbeiros %}
+                <tr class="border-t border-gray-200 hover:bg-gray-100">
+                    <td class="p-2">{{ barbeiro.nome }}</td>
+                    <td class="p-2">{{ barbeiro.telefone }}</td>
+                    <td class="p-2">R$ {{ barbeiro.valor_total }}</td>
+                    <td class="p-2">R$ {{ barbeiro.valor_semanal }}</td>
+                    <td class="p-2 flex justify-center space-x-2">
+                        <a href="{% url 'editar_barbeiro' barbeiro.id %}" class="bg-yellow-400 text-white px-2 py-1 rounded-lg text-xs hover:bg-yellow-500">Editar</a>
+                        <form method="POST" action="{% url 'remover_barbeiro' barbeiro.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-red-600">Remover</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="5" class="text-center py-3 font-bold">Valor Total de Todos os Barbeiros: R$ {{ valor_total_geral }}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+</div>
+
 </div>
 {% endblock %}

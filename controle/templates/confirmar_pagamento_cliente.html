@@ -7,6 +7,13 @@
             <div class="card">
                 <div class="card-body">
                     <h2 class="card-title text-center">Confirmar Pagamento</h2>
+                    {% if messages %}
+                        <div>
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
                     <form method="POST">
                         {% csrf_token %}

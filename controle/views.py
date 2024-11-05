@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.contrib import messages
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import LoginView
@@ -87,11 +87,7 @@ def cadastrar_cliente(request):
             messages.error(request, 'Erro ao cadastrar o cliente. Verifique os dados e tente novamente.')
     else:
         form = ClienteForm()
-    return render(request, 'cadastrar_cliente.html', {'form': form})
-
-
-
-
+    return render(request, 'clientes/cadastrar_cliente.html', {'form': form})
 
 def agendamentos(request):
     barbeiro_filter = request.GET.get('barbeiro')
@@ -124,7 +120,7 @@ def agendamentos(request):
             'id': agendamento.id,
             'cliente': agendamento.cliente.nome,
             'barbeiro': agendamento.barbeiro.nome,
-            'tipos_corte': [str(corte) for corte in agendamento.tipo_corte.all()],  # Obtém todos os tipos de corte
+            'tipos_corte': [str(corte) for corte in agendamento.tipo_corte.all()],
             'data': agendamento.data,
             'hora': agendamento.hora,
         } for agendamento in page_obj]
@@ -135,9 +131,6 @@ def remover_agendamento(request, agendamento_id):
     agendamento.delete()
     messages.success(request, "Agendamento removido com sucesso!")
     return redirect('agendamentos')  # Redirecione para a lista de agendamentos
-
-
-
 
 def confirmar_pagamento(request, agendamento_id):
     agendamento = get_object_or_404(Agendamento, id=agendamento_id)
@@ -165,17 +158,21 @@ def confirmar_pagamento(request, agendamento_id):
                 messages.error(request, f"O produto {produto.nome} não tem estoque suficiente.")
                 return redirect('confirmar_pagamento', agendamento_id=agendamento_id)
 
+        # Atualiza o agendamento e define como pago e confirmado
         agendamento.pago = True
-        agendamento.is_confirmed = True
+        agendamento.is_confirmed = True  # Use o campo is_confirmed para a confirmação
         agendamento.save()
 
-        messages.success(request, "Pagamento confirmado e estoque atualizado!")
-        return redirect('agendamentos')
+        # Adiciona a mensagem de confirmação e limpa a fila antes do redirecionamento
+        messages.success(request, 'Pagamento confirmado com sucesso!')
+        list(messages.get_messages(request))  # Limpa a fila de mensagens lidas
+        return redirect('agendamentos')  # Redireciona sem mensagem persistente
 
+    # Renderiza a página de confirmação de pagamento
     return render(request, 'confirmar_pagamento_cliente.html', {
         'agendamento': agendamento,
         'produtos': produtos,
-        'valor_total': valor_total  # Inclua o valor total dos cortes no contexto
+        'valor_total': valor_total
     })
 
 def estatisticas(request):
@@ -205,9 +202,14 @@ def estatisticas(request):
     # Lista de todos os produtos com suas quantidades em estoque - Ordenado pelo nome do produto
     produtos = Produto.objects.all().order_by('nome')
 
-    # Aniversariantes do Mês - Ordenado pela data de nascimento (dia e mês)
+    # Aniversariantes do Mês a partir de hoje - Ordenado pela data de nascimento (dia e mês)
     hoje = timezone.now()
-    aniversariantes_do_mes = Cliente.objects.filter(data_nascimento__month=hoje.month).annotate(
+    dia_atual = hoje.day
+    mes_atual = hoje.month
+    aniversariantes_do_mes = Cliente.objects.filter(
+        Q(data_nascimento__month=mes_atual) & 
+        Q(data_nascimento__day__gte=dia_atual-1)
+    ).annotate(
         dia_nascimento=ExtractDay('data_nascimento'),
         mes_nascimento=ExtractMonth('data_nascimento')
     ).order_by('mes_nascimento', 'dia_nascimento')
@@ -234,14 +236,34 @@ def admin_custom(request):
     barbeiros = Barbeiro.objects.all()
     tipos_corte = TipoCorte.objects.all()
 
-    # Calcular o valor total dos cortes para cada barbeiro
+    # Obter a data atual
+    hoje = timezone.now()
+
+    # Calcular o domingo e o sábado da semana atual
+    domingo_atual = hoje - timedelta(days=hoje.weekday() + 1)  # Último domingo
+    sabado_atual = domingo_atual + timedelta(days=6)  # Próximo sábado
+
+    # Calcular o valor total e o valor semanal dos cortes para cada barbeiro
     for barbeiro in barbeiros:
-        # Filtrar os agendamentos feitos por este barbeiro
-        barbeiro_agendamentos = Agendamento.objects.filter(barbeiro=barbeiro)
+        # Filtrar os agendamentos feitos por este barbeiro com pagamento confirmado
+        barbeiro_agendamentos = Agendamento.objects.filter(
+            barbeiro=barbeiro,
+            is_confirmed=True
+        )
+        
         # Somar o valor de cada corte realizado pelo barbeiro
         barbeiro.valor_total = sum(
             sum(corte.preco for corte in agendamento.tipo_corte.all())
             for agendamento in barbeiro_agendamentos
+        )
+
+        # Calcular o valor semanal
+        barbeiro.valor_semanal = sum(
+            sum(corte.preco for corte in agendamento.tipo_corte.all())
+            for agendamento in barbeiro_agendamentos.filter(
+                data__gte=domingo_atual,
+                data__lte=sabado_atual
+            )
         )
 
     # Calcular o valor total acumulado de todos os barbeiros
@@ -255,6 +277,8 @@ def admin_custom(request):
     }
 
     return render(request, 'administrador/admin_custom.html', context)
+
+
 
 
 #Produto
@@ -360,3 +384,23 @@ def remover_barbeiro(request, barbeiro_id):
     barbeiro = get_object_or_404(Barbeiro, id=barbeiro_id)
     barbeiro.delete()
     return redirect('admin_custom')
+
+
+def editar_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    if request.method == 'POST':
+        form = ClienteForm(request.POST, instance=cliente)
+        if form.is_valid():
+            form.save()
+            return redirect('estatisticas')  # Redirecionar para a tela de estatísticas
+    else:
+        form = ClienteForm(instance=cliente)
+    return render(request, 'clientes/editar_cliente.html', {'form': form, 'cliente': cliente})
+
+
+def excluir_cliente(request, id):
+    cliente = get_object_or_404(Cliente, id=id)
+    if request.method == 'POST':
+        cliente.delete()
+        messages.success(request, "Cliente excluído com sucesso!")
+        return redirect('estatisticas') 

@@ -8,7 +8,12 @@ urlpatterns = [
     path('cadastrar_cliente/', views.cadastrar_cliente, name='cadastrar_cliente'),
     path('marcar_horario/', views.marcar_horario, name='marcar_horario'),
     path('estatisticas/', views.estatisticas, name='estatisticas'),
-	path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
+	
+    path('editar_cliente/<int:cliente_id>/', views.editar_cliente, name='editar_cliente'),
+    path('excluir_cliente/<int:id>/', views.excluir_cliente, name='excluir_cliente'),
+    
+    path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
+	
 	
 	
     
