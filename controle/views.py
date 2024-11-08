@@ -105,21 +105,29 @@ def agendamentos(request):
     # Ordenar por data e hora
     agendamentos = agendamentos.order_by('data', 'hora')
 
+    # Define um mapeamento de cores para os barbeiros
+    barbeiros_cores = {}
+    barbeiros = Barbeiro.objects.all()
+    for i, barbeiro in enumerate(barbeiros):
+        barbeiros_cores[barbeiro.id] = 'green' if i % 2 == 0 else 'red'
+
+    # Adicionar a cor para cada agendamento
+    for agendamento in agendamentos:
+        agendamento.cor_barbeiro = barbeiros_cores.get(agendamento.barbeiro.id, 'gray')
+
     # Paginação
     paginator = Paginator(agendamentos, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Obter todos os barbeiros
-    barbeiros = Barbeiro.objects.all()
-
-    return render(request, 'agendamentos.html', {
+    return render(request, 'agendamentos/agendamentos.html', {
         'page_obj': page_obj,
         'barbeiros': barbeiros,
         'agendamentos': [{
             'id': agendamento.id,
             'cliente': agendamento.cliente.nome,
             'barbeiro': agendamento.barbeiro.nome,
+            'cor_barbeiro': agendamento.cor_barbeiro,  # Cor adicionada ao contexto
             'tipos_corte': [str(corte) for corte in agendamento.tipo_corte.all()],
             'data': agendamento.data,
             'hora': agendamento.hora,
@@ -135,6 +143,7 @@ def remover_agendamento(request, agendamento_id):
 def confirmar_pagamento(request, agendamento_id):
     agendamento = get_object_or_404(Agendamento, id=agendamento_id)
     produtos = Produto.objects.all()
+    tipos_corte = TipoCorte.objects.all()  
     
     # Calcular o valor total dos cortes selecionados
     valor_total = sum(corte.preco for corte in agendamento.tipo_corte.all())
@@ -156,22 +165,23 @@ def confirmar_pagamento(request, agendamento_id):
                 total_pago += produto.preco * quantidade
             else:
                 messages.error(request, f"O produto {produto.nome} não tem estoque suficiente.")
-                return redirect('confirmar_pagamento', agendamento_id=agendamento_id)
+                return redirect('agendamentos/confirmar_pagamento', agendamento_id=agendamento_id)
 
         # Atualiza o agendamento e define como pago e confirmado
         agendamento.pago = True
-        agendamento.is_confirmed = True  # Use o campo is_confirmed para a confirmação
+        agendamento.is_confirmed = True 
         agendamento.save()
 
         # Adiciona a mensagem de confirmação e limpa a fila antes do redirecionamento
         messages.success(request, 'Pagamento confirmado com sucesso!')
-        list(messages.get_messages(request))  # Limpa a fila de mensagens lidas
-        return redirect('agendamentos')  # Redireciona sem mensagem persistente
+        list(messages.get_messages(request))  
+        return redirect('agendamentos')  
 
-    # Renderiza a página de confirmação de pagamento
-    return render(request, 'confirmar_pagamento_cliente.html', {
+    # Renderiza a página de confirmação de pagamento com tipos de corte incluídos
+    return render(request, 'agendamentos/confirmar_pagamento_cliente.html', {
         'agendamento': agendamento,
         'produtos': produtos,
+        'tipos_corte': tipos_corte,  
         'valor_total': valor_total
     })
 

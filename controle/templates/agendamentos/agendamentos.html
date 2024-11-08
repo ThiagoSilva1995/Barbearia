@@ -37,37 +37,42 @@
             </thead>
             <tbody>
                 {% for agendamento in page_obj %}
-                <tr id="agendamentoRow{{ agendamento.id }}">
+                <tr id="agendamentoRow{{ agendamento.id }}" class="{% cycle 'bg-gray-100' 'bg-white' %}">
                     <td class="text-sm font-bold">
-                        <a href="#" 
-                           class="enviar-whatsapp" 
-                           data-nome="{{ agendamento.cliente.nome }}" 
+                        <a href="#"
+                           class="enviar-whatsapp"
+                           data-nome="{{ agendamento.cliente.nome }}"
                            data-telefone="{{ agendamento.cliente.telefone }}"
                            style="text-decoration: none; color: inherit;">
                             <span>{{ agendamento.cliente.nome }}</span>
                         </a>
                     </td>
 
-                    <!-- Listar todos os tipos de corte selecionados -->
                     <td class="text-sm font-bold">
                         {% for corte in agendamento.tipo_corte.all %}
                             {{ corte.nome }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
                     </td>
 
-                    <td class="text-sm font-bold">{{ agendamento.barbeiro.nome }}</td>
-                    <td class="text-sm font-bold">{{ agendamento.data|date:"l - d/m" }} - {{ agendamento.hora|time:"H:i" }}</td>
-
-                    <!-- Exibir o valor total dos cortes selecionados -->
+                    <!-- Nome do barbeiro com a cor específica -->
                     <td class="text-sm font-bold">
-                        R$ {{ agendamento.calcular_valor_total }}
+                        <span class="px-2 py-1 rounded-full" style="background-color: {{ agendamento.cor_barbeiro }}">
+                            {{ agendamento.barbeiro }}
+                        </span>
+                    </td>
+                    
+                    <!-- Data e Hora com a mesma cor do barbeiro -->
+                    <td class="text-sm font-bold">
+                        <span class="px-2 py-1 rounded-full" style="background-color: {{ agendamento.cor_barbeiro }}">
+                            {{ agendamento.data|date:"l - d/m" }} - {{ agendamento.hora|time:"H:i" }}
+                        </span>
                     </td>
 
+                    <td class="text-sm font-bold">R$ {{ agendamento.calcular_valor_total }}</td>
+
                     <td>
-                        <!-- Botão para redirecionar à página de pagamento -->
                         <a href="{% url 'confirmar_pagamento' agendamento.id %}" class="btn btn-success btn-sm">Confirmar</a>
 
-                        <!-- Botão para remover o agendamento -->
                         <form method="POST" action="{% url 'remover_agendamento' agendamento.id %}" style="display: inline;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger btn-sm">Remover</button>
@@ -107,22 +112,17 @@
 
 <script>
     document.querySelectorAll('.enviar-whatsapp').forEach(button => {
-    button.addEventListener('click', function() {
-        let nome = this.getAttribute('data-nome');
-        const telefone = this.getAttribute('data-telefone').replace(/\s/g, ''); // Remove espaços
-        
-        // Remove conteúdo entre parênteses, incluindo os parênteses
-        nome = nome.replace(/\s*\(.*?\)\s*/g, '').trim();
-        
-        // Adicione %0A onde deseja pular a linha
-        const mensagem = `Olá, ${encodeURIComponent(nome)}!`;
-        
-        // URL do WhatsApp Web
-        const url = `https://web.whatsapp.com/send?phone=${telefone}&text=${mensagem}`;
-        
-        window.open(url, '_blank'); // Abre em nova aba
-    });
-});
-</script>
+        button.addEventListener('click', function() {
+            let nome = this.getAttribute('data-nome');
+            const telefone = this.getAttribute('data-telefone').replace(/\s/g, '');
 
+            nome = nome.replace(/\s*\(.*?\)\s*/g, '').trim();
+            const mensagem = `Olá, ${encodeURIComponent(nome)}!`;
+
+            const url = `https://web.whatsapp.com/send?phone=${telefone}&text=${mensagem}`;
+
+            window.open(url, '_blank');
+        });
+    });
+</script>
 {% endblock %}

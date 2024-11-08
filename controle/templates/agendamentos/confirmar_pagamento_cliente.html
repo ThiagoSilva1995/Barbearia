@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center">Confirmar Pagamento</h2>
+                    {% if messages %}
+                        <div>
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <p><strong>Cliente:</strong> {{ agendamento.cliente.nome }}</p>
+                            <p><strong>Barbeiro:</strong> {{ agendamento.barbeiro.nome }}</p>
+                            <p><strong>Tipo de Corte:</strong>{% for corte in agendamento.tipo_corte.all %} {{ corte.nome }} - R$ {{ corte.preco }}  / {% empty %}Nenhum corte selecionado{% endfor %}</p>
+                        </div>
+                        <div class="row">
+                            <!-- Coluna de Produtos Consumidos -->
+                            <div class="col-md-6">
+                                <h6 class="mt-4">Produtos Consumidos</h6>
+                                <div class="mb-3">
+                                    <select id="produtoSelect" class="form-select">
+                                        <option value="" selected disabled>Selecione um produto</option>
+                                        {% for produto in produtos %}
+                                        <option value="{{ produto.id }}" data-preco="{{ produto.preco }}">
+                                            {{ produto.nome }} - R$ {{ produto.preco }} (Estoque: {{ produto.estoque }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="quantidade" class="form-label">Quantidade</label>
+                                    <input type="number" id="quantidade" class="form-control" value="1" min="1">
+                                </div>
+                            </div>
+
+                            <!-- Coluna de Serviços Consumidos (Tipos de Corte) -->
+                            <div class="col-md-6">
+                                <h6 class="mt-4">Serviços Consumidos</h6>
+                                <div class="mb-3">
+                                    <select id="servicoSelect" class="form-select">
+                                        <option value="" selected disabled>Selecione um serviço</option>
+                                        {% for tipo_corte in tipos_corte %}
+                                        <option value="{{ tipo_corte.id }}" data-preco="{{ tipo_corte.preco }}">
+                                            {{ tipo_corte.nome }} - R$ {{ tipo_corte.preco }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary mb-3" onclick="adicionarProduto()">Adicionar</button>
+                        </div>
+
+                        <h5>Produtos Adicionados</h5>
+                        <ul class="list-group mb-3" id="listaProdutos">
+                            <!-- Produtos adicionados serão exibidos aqui -->
+                        </ul>
+
+                        <h5>Valor Total: R$ <span id="valorTotal">{{ valor_total|default:0 }}</span></h5>
+
+                        <button type="submit" class="btn btn-success mt-3">Confirmar Pagamento</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inicializa valorTotal com o valor total dos cortes
+    let valorTotal = parseFloat('{{ valor_total|default:0 }}');
+    const listaProdutos = document.getElementById('listaProdutos');
+    const valorTotalSpan = document.getElementById('valorTotal');
+
+    function adicionarProduto() {
+        const produtoSelect = document.getElementById('produtoSelect');
+        const servicoSelect = document.getElementById('servicoSelect');
+        const quantidadeInput = document.getElementById('quantidade');
+
+        let nome, preco, total, itemLista, inputItem, botaoRemover;
+
+        // Verificar se ao menos um dos campos foi selecionado
+        if (produtoSelect.value === "" && servicoSelect.value === "") {
+            alert("Por favor, selecione um produto ou um serviço.");
+            return;
+        }
+
+        // Adicionar produto
+        if (produtoSelect.value !== "") {
+            nome = produtoSelect.options[produtoSelect.selectedIndex].text.split('-')[0].trim();
+            preco = parseFloat(produtoSelect.options[produtoSelect.selectedIndex].dataset.preco);
+            const quantidade = parseInt(quantidadeInput.value);
+            total = preco * quantidade;
+
+            produtoSelect.selectedIndex = 0;
+            quantidadeInput.value = 1;
+        } 
+        // Adicionar serviço
+        else if (servicoSelect.value !== "") {
+            nome = servicoSelect.options[servicoSelect.selectedIndex].text.split('-')[0].trim();
+            preco = parseFloat(servicoSelect.options[servicoSelect.selectedIndex].dataset.preco);
+            total = preco;
+
+            servicoSelect.selectedIndex = 0;
+        }
+
+        valorTotal += total;
+        valorTotalSpan.textContent = valorTotal.toFixed(2);
+
+        itemLista = document.createElement('li');
+        itemLista.className = "list-group-item d-flex justify-content-between align-items-center";
+        itemLista.textContent = `${nome} - R$ ${total.toFixed(2)}`;
+
+        inputItem = document.createElement('input');
+        inputItem.type = 'hidden';
+        inputItem.name = produtoSelect.value ? 'produtos' : 'servicos';
+        inputItem.value = produtoSelect.value || servicoSelect.value;
+
+        botaoRemover = document.createElement('button');
+        botaoRemover.className = "btn btn-danger btn-sm";
+        botaoRemover.textContent = "Remover";
+        botaoRemover.onclick = function() {
+            valorTotal -= total;
+            valorTotalSpan.textContent = valorTotal.toFixed(2);
+            listaProdutos.removeChild(itemLista);
+        };
+
+        itemLista.appendChild(botaoRemover);
+        itemLista.appendChild(inputItem);
+        listaProdutos.appendChild(itemLista);
+    }
+</script>
+{% endblock %}
